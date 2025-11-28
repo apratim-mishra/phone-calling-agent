@@ -13,13 +13,15 @@ logger = get_logger(__name__)
 
 
 class LLMProvider:
-    """LLM provider with Z.ai primary and OpenAI fallback."""
+    """LLM provider with Z.ai primary, Groq secondary, and OpenAI fallback."""
 
     def __init__(
         self,
         primary_api_key: Optional[str] = None,
         primary_base_url: Optional[str] = None,
         primary_model: Optional[str] = None,
+        groq_api_key: Optional[str] = None,
+        groq_model: Optional[str] = None,
         fallback_api_key: Optional[str] = None,
         fallback_model: Optional[str] = None,
         max_tokens: int = 150,
@@ -28,12 +30,16 @@ class LLMProvider:
         self.primary_api_key = primary_api_key or settings.z_ai_api_key
         self.primary_base_url = primary_base_url or settings.z_ai_base_url
         self.primary_model = primary_model or settings.z_ai_model
+        self.groq_api_key = groq_api_key or settings.groq_api_key
+        self.groq_base_url = settings.groq_base_url
+        self.groq_model = groq_model or settings.groq_model
         self.fallback_api_key = fallback_api_key or settings.openai_api_key
         self.fallback_model = fallback_model or settings.openai_model
         self.max_tokens = max_tokens
         self.temperature = temperature
 
         self._primary_client: Optional[ChatOpenAI] = None
+        self._groq_client: Optional[ChatOpenAI] = None
         self._fallback_client: Optional[ChatOpenAI] = None
 
     def _get_primary_client(self) -> Optional[ChatOpenAI]:
@@ -53,6 +59,23 @@ class LLMProvider:
 
         return self._primary_client
 
+    def _get_groq_client(self) -> Optional[ChatOpenAI]:
+        """Get the Groq client (fast inference)."""
+        if not self.groq_api_key:
+            return None
+
+        if self._groq_client is None:
+            self._groq_client = ChatOpenAI(
+                api_key=self.groq_api_key,
+                base_url=self.groq_base_url,
+                model=self.groq_model,
+                max_tokens=self.max_tokens,
+                temperature=self.temperature,
+            )
+            logger.info(f"Initialized Groq client with model: {self.groq_model}")
+
+        return self._groq_client
+
     def _get_fallback_client(self) -> Optional[ChatOpenAI]:
         """Get the fallback OpenAI client."""
         if not self.fallback_api_key:
@@ -70,17 +93,22 @@ class LLMProvider:
         return self._fallback_client
 
     def get_model(self) -> BaseChatModel:
-        """Get the active LLM model (primary or fallback)."""
+        """Get the active LLM model (Z.ai -> Groq -> OpenAI fallback chain)."""
         primary = self._get_primary_client()
         if primary:
             return primary
+
+        groq = self._get_groq_client()
+        if groq:
+            logger.info("Using Groq for LLM inference")
+            return groq
 
         fallback = self._get_fallback_client()
         if fallback:
             logger.warning("Using fallback OpenAI model")
             return fallback
 
-        raise LLMError("No LLM provider configured. Set Z_AI_API_KEY or OPENAI_API_KEY.")
+        raise LLMError("No LLM provider configured. Set Z_AI_API_KEY, GROQ_API_KEY, or OPENAI_API_KEY.")
 
     async def generate(
         self,

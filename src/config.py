@@ -22,9 +22,17 @@ class Settings(BaseSettings):
     z_ai_base_url: str = "https://api.z.ai/v1"
     z_ai_model: str = ""
 
+    # LLM - Groq (fast inference)
+    groq_api_key: str = ""
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    groq_model: str = "llama-3.1-70b-versatile"
+
     # LLM - OpenAI (fallback)
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
+
+    # STT Provider: "local" (MLX Whisper) or "groq" (Groq Whisper API)
+    stt_provider: Literal["local", "groq"] = "local"
 
     # MLX Models
     whisper_model_size: Literal["tiny", "base", "small"] = "base"
@@ -57,6 +65,10 @@ class Settings(BaseSettings):
     @property
     def primary_llm_available(self) -> bool:
         return bool(self.z_ai_api_key and self.z_ai_model)
+
+    @property
+    def groq_llm_available(self) -> bool:
+        return bool(self.groq_api_key)
 
     @property
     def fallback_llm_available(self) -> bool:
