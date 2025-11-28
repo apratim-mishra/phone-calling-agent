@@ -1,0 +1,79 @@
+# Cursor AI Rules for Realtime Phone Agent
+
+## Project Context
+
+Production-grade realtime phone agent using FastAPI, MLX, LangGraph, and Twilio.
+
+## Code Style
+
+- PEP 8, line length 100
+- Type hints on all functions
+- f-strings for formatting
+- async/await for I/O
+- Import order: stdlib → third-party → local
+
+## Naming
+
+- Variables/functions: `snake_case`
+- Classes: `PascalCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Private: `_prefix`
+
+## File Organization
+
+```
+src/
+├── agents/       # LangGraph agents
+├── audio/        # STT/TTS processing
+├── models/       # LLM providers
+├── database/     # Pinecone, SQLAlchemy
+├── api/          # FastAPI routes
+├── services/     # Business logic
+├── utils/        # Helpers
+└── config.py     # Settings
+```
+
+## Key Patterns
+
+### MLX
+
+- Check device availability before loading
+- Clear cache with `mx.clear_cache()`
+- Handle model init errors
+
+### Audio
+
+- Default Whisper "base" model
+- Handle failures gracefully
+- Return audio as bytes for streaming
+
+### LangGraph
+
+- TypedDict for state
+- Async tool functions
+- Clear node definitions
+
+### FastAPI
+
+- Accept WebSocket before processing
+- Handle WebSocketDisconnect
+- Use HTTPException for errors
+
+### Twilio
+
+- Validate signatures
+- Handle all status callbacks
+
+### Pinecone
+
+- Cache encoder models
+- Use async wrappers
+
+## Code Checklist
+
+- [ ] Type hints
+- [ ] Async I/O
+- [ ] Error handling
+- [ ] Logging
+- [ ] Input validation
+- [ ] No hardcoded values
