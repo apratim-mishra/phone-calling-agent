@@ -24,7 +24,7 @@ class LLMProvider:
         groq_model: Optional[str] = None,
         fallback_api_key: Optional[str] = None,
         fallback_model: Optional[str] = None,
-        max_tokens: int = 150,
+        max_tokens: int = 100,  # Keep phone responses short
         temperature: float = 0.7,
     ):
         self.primary_api_key = primary_api_key or settings.z_ai_api_key

@@ -32,37 +32,47 @@ env/
 *.swp
 *.swo
 *~
+.cursor/
 
 # Environment
 .env
 .env.local
 .env.*.local
+*.env
 
 # Logs
-logs/
-*.log
+logs/*.log
+!logs/.gitkeep
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
-data/app.db
+data/*.db
+!data/.gitkeep
 
 # Audio files
 debug_audio/
 *.wav
 *.mp3
+*.flac
 
-# ML Models (downloaded)
-models/whisper/
-models/kokoro/
+# ML Models (downloaded automatically)
+models/
+*.mlx
+*.gguf
+*.bin
+*.safetensors
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
 # pytest
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 
 # mypy
@@ -76,3 +86,24 @@ htmlcov/
 
 # W&B
 wandb/
+
+# ngrok
+ngrok.yml
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Secrets (be extra careful)
+secrets/
+*.pem
+*.key
+
+# Node (if any frontend)
+node_modules/
+
+# UV/pip cache
+.uv/
+pip-cache/

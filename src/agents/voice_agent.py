@@ -133,16 +133,16 @@ class VoiceAgent:
         action = result.get("current_action", "continue")
 
         if "TRANSFER_REQUESTED" in response_text:
-            response_text = (
-                "I understand. Let me transfer you to one of our human agents. "
-                "Please hold for just a moment."
-            )
+            # Remove the marker and keep the message short
+            response_text = response_text.replace("TRANSFER_REQUESTED", "").strip()
+            if not response_text:
+                response_text = "Let me transfer you to an agent. Please hold."
             action = "transfer"
         elif "CALL_ENDED" in response_text:
-            response_text = (
-                "Thank you for calling Premier Properties! "
-                "Feel free to call back anytime. Have a wonderful day!"
-            )
+            # Remove the marker and keep the farewell short
+            response_text = response_text.replace("CALL_ENDED", "").strip()
+            if not response_text:
+                response_text = "Thanks for calling! Goodbye!"
             action = "end"
 
         logger.debug(f"Agent response: {response_text[:100]}... (action: {action})")

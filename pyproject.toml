@@ -28,7 +28,7 @@ dependencies = [
     "langchain-openai>=0.2.0",
     
     # Database
-    "pinecone-client>=5.0.0",
+    "pinecone>=5.0.0",
     "sqlalchemy[asyncio]>=2.0.0",
     "aiosqlite>=0.20.0",
     

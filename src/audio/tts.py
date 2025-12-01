@@ -53,19 +53,26 @@ class KokoroTTS:
             if not text.strip():
                 return np.array([], dtype=np.float32)
 
+            logger.info(f"🔊 TTS synthesizing: '{text[:50]}...'")
             audio_segments = []
             generator = self._pipeline(text, voice=self.voice, speed=speed)
 
             for _, _, audio in generator:
                 if audio is not None:
+                    # Convert mlx array to numpy if needed
+                    if hasattr(audio, 'tolist'):  # mlx array
+                        audio = np.array(audio.tolist(), dtype=np.float32)
+                    elif not isinstance(audio, np.ndarray):
+                        audio = np.array(audio, dtype=np.float32)
                     audio_segments.append(audio)
 
             if not audio_segments:
                 raise TTSError("No audio generated")
 
             combined = np.concatenate(audio_segments)
-            logger.debug(f"Generated {len(combined) / self._sample_rate:.2f}s of audio")
-            return combined
+            duration = len(combined) / self._sample_rate
+            logger.info(f"🔊 TTS generated {duration:.2f}s of audio ({len(combined)} samples)")
+            return combined.astype(np.float32)
 
         except TTSError:
             raise

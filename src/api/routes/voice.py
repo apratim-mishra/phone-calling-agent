@@ -56,29 +56,51 @@ async def websocket_stream(websocket: WebSocket, call_sid: str):
             direction=CallDirection.INBOUND,
         )
 
+    stream_sid = None  # Will be set when we receive "start" event
+    greeting_sent = False
+
     try:
-        greeting_audio = await call_service.get_greeting_audio(call_sid)
-        if greeting_audio:
-            import base64
-
-            await websocket.send_json(
-                {
-                    "event": "media",
-                    "streamSid": call_sid,
-                    "media": {"payload": base64.b64encode(greeting_audio).decode()},
-                }
-            )
-
         while True:
             data = await websocket.receive_text()
             message = json.loads(data)
+            event = message.get("event")
+
+            # Capture streamSid from start event and send greeting
+            if event == "start":
+                stream_sid = message.get("start", {}).get("streamSid")
+                logger.info(f"Stream started with streamSid: {stream_sid}")
+                
+                # Send greeting AFTER we have the streamSid
+                if not greeting_sent and stream_sid:
+                    logger.info(f"🎙️ Generating greeting audio...")
+                    greeting_audio = await call_service.get_greeting_audio(call_sid)
+                    if greeting_audio:
+                        import base64
+                        from datetime import datetime, timedelta
+                        
+                        # Set speaking time to ignore echo during greeting
+                        speaking_duration = len(greeting_audio) / 8000 + 1.0  # Add buffer
+                        if session:
+                            session.speaking_until = datetime.utcnow() + timedelta(seconds=speaking_duration)
+                        
+                        logger.info(f"📤 Sending greeting: {len(greeting_audio)} bytes ({speaking_duration:.1f}s)")
+                        await websocket.send_json({
+                            "event": "media",
+                            "streamSid": stream_sid,
+                            "media": {"payload": base64.b64encode(greeting_audio).decode()},
+                        })
+                        logger.info("✅ Greeting sent successfully")
+                        greeting_sent = True
 
             response = await call_service.handle_websocket_message(call_sid, message)
 
             if response:
+                # Make sure response uses correct streamSid
+                if stream_sid and response.get("streamSid") != stream_sid:
+                    response["streamSid"] = stream_sid
                 await websocket.send_json(response)
 
-            if message.get("event") == "stop":
+            if event == "stop":
                 break
 
     except WebSocketDisconnect:

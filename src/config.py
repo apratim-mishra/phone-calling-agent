@@ -19,13 +19,13 @@ class Settings(BaseSettings):
 
     # LLM - Z.ai (primary)
     z_ai_api_key: str = ""
-    z_ai_base_url: str = "https://api.z.ai/v1"
+    z_ai_base_url: str = "https://api.z.ai/api/paas/v4/"
     z_ai_model: str = ""
 
-    # LLM - Groq (fast inference)
+    # LLM - Groq (fast inference - recommended for phone calls)
     groq_api_key: str = ""
     groq_base_url: str = "https://api.groq.com/openai/v1"
-    groq_model: str = "llama-3.1-70b-versatile"
+    groq_model: str = "llama-3.1-70b-versatile"  # Fast & capable
 
     # LLM - OpenAI (fallback)
     openai_api_key: str = ""
@@ -35,14 +35,14 @@ class Settings(BaseSettings):
     stt_provider: Literal["local", "groq"] = "local"
 
     # MLX Models
-    whisper_model_size: Literal["tiny", "base", "small"] = "base"
+    whisper_model_size: Literal["tiny", "base", "small","medium", "large-v3"] = "base"
     tts_model: str = "kokoro-v0_19"
     tts_voice: str = "af_sarah"
 
     # Pinecone
     pinecone_api_key: str = ""
     pinecone_index_name: str = "properties"
-    embedding_model: str = "text-embedding-3-small"
+    embedding_model: str = "text-embedding-ada-002"
     embedding_dimension: int = 1536
 
     # Weights & Biases
